@@ -1,0 +1,4 @@
+http://greenoakst.blogspot.ru/2012/06/arduino-spi.html          SPI
+https://www.coursera.org/learn/roboty-arduino/home
+https://www.youtube.com/playlist?list=PLA567CE235D39FA84        Jeremy playlist
+
