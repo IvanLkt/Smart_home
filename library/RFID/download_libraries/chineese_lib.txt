@@ -1,0 +1,1687 @@
+/*
+002
+ * ? ? ?:RFID.pde
+003
+ * ? ? ?:Dr.Leong   ( <a href="http://WWW.B2CQSHOP.COM" title="WWW.B2CQSHOP.COM" rel="nofollow">WWW.B2CQSHOP.COM</a> )
+004
+ * ????:2011.09.19
+005
+ * ? ? ?:
+006
+ * ????:
+007
+ * ????:Mifare1 ??>???>??>?? ??
+008
+ */
+009
+ // the sensor communicates using SPI, so include the library:
+010
+#include <SPI.h>
+011
+ 
+012
+#define uchar   unsigned char
+013
+#define uint    unsigned int
+014
+ 
+015
+//??????
+016
+#define MAX_LEN 16
+017
+ 
+018
+/////////////////////////////////////////////////////////////////////
+019
+//set the pin
+020
+/////////////////////////////////////////////////////////////////////
+021
+const int chipSelectPin = 53;
+022
+const int NRSTPD = 5;
+023
+ 
+024
+//MF522???
+025
+#define PCD_IDLE              0x00               //NO action;??????
+026
+#define PCD_AUTHENT           0x0E               //????
+027
+#define PCD_RECEIVE           0x08               //????
+028
+#define PCD_TRANSMIT          0x04               //????
+029
+#define PCD_TRANSCEIVE        0x0C               //???????
+030
+#define PCD_RESETPHASE        0x0F               //??
+031
+#define PCD_CALCCRC           0x03               //CRC??
+032
+ 
+033
+//Mifare_One?????
+034
+#define PICC_REQIDL           0x26               //????????????
+035
+#define PICC_REQALL           0x52               //????????
+036
+#define PICC_ANTICOLL         0x93               //???
+037
+#define PICC_SElECTTAG        0x93               //??
+038
+#define PICC_AUTHENT1A        0x60               //??A??
+039
+#define PICC_AUTHENT1B        0x61               //??B??
+040
+#define PICC_READ             0x30               //??
+041
+#define PICC_WRITE            0xA0               //??
+042
+#define PICC_DECREMENT        0xC0               //??
+043
+#define PICC_INCREMENT        0xC1               //??
+044
+#define PICC_RESTORE          0xC2               //????????
+045
+#define PICC_TRANSFER         0xB0               //????????
+046
+#define PICC_HALT             0x50               //??
+047
+ 
+048
+ 
+049
+//?MF522??????????
+050
+#define MI_OK                 0
+051
+#define MI_NOTAGERR           1
+052
+#define MI_ERR                2
+053
+ 
+054
+ 
+055
+//------------------MFRC522???---------------
+056
+//Page 0:Command and Status
+057
+#define     Reserved00            0x00   
+058
+#define     CommandReg            0x01   
+059
+#define     CommIEnReg            0x02   
+060
+#define     DivlEnReg             0x03   
+061
+#define     CommIrqReg            0x04   
+062
+#define     DivIrqReg             0x05
+063
+#define     ErrorReg              0x06   
+064
+#define     Status1Reg            0x07   
+065
+#define     Status2Reg            0x08   
+066
+#define     FIFODataReg           0x09
+067
+#define     FIFOLevelReg          0x0A
+068
+#define     WaterLevelReg         0x0B
+069
+#define     ControlReg            0x0C
+070
+#define     BitFramingReg         0x0D
+071
+#define     CollReg               0x0E
+072
+#define     Reserved01            0x0F
+073
+//Page 1:Command    
+074
+#define     Reserved10            0x10
+075
+#define     ModeReg               0x11
+076
+#define     TxModeReg             0x12
+077
+#define     RxModeReg             0x13
+078
+#define     TxControlReg          0x14
+079
+#define     TxAutoReg             0x15
+080
+#define     TxSelReg              0x16
+081
+#define     RxSelReg              0x17
+082
+#define     RxThresholdReg        0x18
+083
+#define     DemodReg              0x19
+084
+#define     Reserved11            0x1A
+085
+#define     Reserved12            0x1B
+086
+#define     MifareReg             0x1C
+087
+#define     Reserved13            0x1D
+088
+#define     Reserved14            0x1E
+089
+#define     SerialSpeedReg        0x1F
+090
+//Page 2:CFG   
+091
+#define     Reserved20            0x20 
+092
+#define     CRCResultRegM         0x21
+093
+#define     CRCResultRegL         0x22
+094
+#define     Reserved21            0x23
+095
+#define     ModWidthReg           0x24
+096
+#define     Reserved22            0x25
+097
+#define     RFCfgReg              0x26
+098
+#define     GsNReg                0x27
+099
+#define     CWGsPReg              0x28
+100
+#define     ModGsPReg             0x29
+101
+#define     TModeReg              0x2A
+102
+#define     TPrescalerReg         0x2B
+103
+#define     TReloadRegH           0x2C
+104
+#define     TReloadRegL           0x2D
+105
+#define     TCounterValueRegH     0x2E
+106
+#define     TCounterValueRegL     0x2F
+107
+//Page 3:TestRegister    
+108
+#define     Reserved30            0x30
+109
+#define     TestSel1Reg           0x31
+110
+#define     TestSel2Reg           0x32
+111
+#define     TestPinEnReg          0x33
+112
+#define     TestPinValueReg       0x34
+113
+#define     TestBusReg            0x35
+114
+#define     AutoTestReg           0x36
+115
+#define     VersionReg            0x37
+116
+#define     AnalogTestReg         0x38
+117
+#define     TestDAC1Reg           0x39 
+118
+#define     TestDAC2Reg           0x3A  
+119
+#define     TestADCReg            0x3B  
+120
+#define     Reserved31            0x3C  
+121
+#define     Reserved32            0x3D  
+122
+#define     Reserved33            0x3E  
+123
+#define     Reserved34            0x3F
+124
+//-----------------------------------------------
+125
+ 
+126
+//4??????,?5???????
+127
+uchar serNum[5];
+128
+ 
+129
+uchar  writeData[16]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100};  //??? 100??
+130
+uchar  moneyConsume = 18 ;  //??18?
+131
+uchar  moneyAdd = 10 ;  //??10?
+132
+//??A??,16???,??????6Byte
+133
+ uchar sectorKeyA[16][16] = {{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
+134
+                             {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
+135
+                             //{0x19, 0x84, 0x07, 0x15, 0x76, 0x14},
+136
+                             {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
+137
+                            };
+138
+ uchar sectorNewKeyA[16][16] = {{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
+139
+                                {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xff,0x07,0x80,0x69, 0x19,0x84,0x07,0x15,0x76,0x14},
+140
+                                 //you can set another ket , such as  " 0x19, 0x84, 0x07, 0x15, 0x76, 0x14 "
+141
+                                 //{0x19, 0x84, 0x07, 0x15, 0x76, 0x14, 0xff,0x07,0x80,0x69, 0x19,0x84,0x07,0x15,0x76,0x14},
+142
+                                 // but when loop, please set the  sectorKeyA, the same key, so that RFID module can read the card
+143
+                                {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xff,0x07,0x80,0x69, 0x19,0x33,0x07,0x15,0x34,0x14},
+144
+                               };
+145
+ 
+146
+void setup() {               
+147
+   Serial.begin(9600);                       // RFID reader SOUT pin connected to Serial RX pin at 2400bps
+148
+ // start the SPI library:
+149
+  SPI.begin();
+150
+   
+151
+  pinMode(chipSelectPin,OUTPUT);             // Set digital pin 10 as OUTPUT to connect it to the RFID /ENABLE pin
+152
+    digitalWrite(chipSelectPin, LOW);          // Activate the RFID reader
+153
+  pinMode(NRSTPD,OUTPUT);               // Set digital pin 10 , Not Reset and Power-down
+154
+    digitalWrite(NRSTPD, HIGH);
+155
+ 
+156
+  MFRC522_Init(); 
+157
+}
+158
+ 
+159
+void loop()
+160
+{
+161
+    uchar i,tmp;
+162
+    uchar status;
+163
+        uchar str[MAX_LEN];
+164
+        uchar RC_size;
+165
+        uchar blockAddr;    //????????0~63
+166
+ 
+167
+ 
+168
+        //??,????? 
+169
+        status = MFRC522_Request(PICC_REQIDL, str);
+170
+        if (status == MI_OK)
+171
+        {
+172
+                        Serial.println("Find out a card ");
+173
+            Serial.print(str[0],BIN);
+174
+                        Serial.print(" , ");
+175
+            Serial.print(str[1],BIN);
+176
+                        Serial.println(" ");
+177
+        }
+178
+ 
+179
+        //???,??????? 4??
+180
+        status = MFRC522_Anticoll(str);
+181
+        memcpy(serNum, str, 5);
+182
+        if (status == MI_OK)
+183
+        {
+184
+ 
+185
+                        Serial.println("The card's number is  : ");
+186
+            Serial.print(serNum[0],BIN);
+187
+                        Serial.print(" , ");
+188
+            Serial.print(serNum[1],BIN);
+189
+                        Serial.print(" , ");
+190
+            Serial.print(serNum[2],BIN);
+191
+                        Serial.print(" , ");
+192
+            Serial.print(serNum[3],BIN);
+193
+                        Serial.print(" , ");
+194
+            Serial.print(serNum[4],BIN);
+195
+                        Serial.println(" ");
+196
+        }
+197
+ 
+198
+        //??,?????
+199
+        RC_size = MFRC522_SelectTag(serNum);
+200
+        if (RC_size != 0)
+201
+ 
+202
+        {
+203
+                        Serial.print("The size of the card is  :   ");
+204
+            Serial.print(RC_size,DEC);
+205
+                        Serial.println(" K bits ");
+206
+        }
+207
+                 
+208
+        //???
+209
+        blockAddr = 7;      //???7     
+210
+        status = MFRC522_Auth(PICC_AUTHENT1A, blockAddr, sectorKeyA[blockAddr/4], serNum);  //??
+211
+        if (status == MI_OK)
+212
+        {
+213
+            //???
+214
+            status = MFRC522_Write(blockAddr, sectorNewKeyA[blockAddr/4]);
+215
+                        Serial.print("set the new card password, and can modify the data of the Sector ");
+216
+                        Serial.print(blockAddr/4,DEC);
+217
+                        Serial.println(" : ");
+218
+            for (i=0; i<6; i++)
+219
+                {
+220
+                        Serial.print(sectorNewKeyA[blockAddr/4][i],HEX);
+221
+                            Serial.print(" , ");
+222
+                }
+223
+                        Serial.println(" ");
+224
+                        blockAddr = blockAddr - 3 ;
+225
+                        status = MFRC522_Write(blockAddr, writeData);
+226
+                        if(status == MI_OK)
+227
+                        {
+228
+                           Serial.println("You are B2CQSHOP VIP Member, The card has  $100 !");
+229
+                        }
+230
+        }
+231
+ 
+232
+        //??
+233
+        blockAddr = 7;      //???7     
+234
+        status = MFRC522_Auth(PICC_AUTHENT1A, blockAddr, sectorNewKeyA[blockAddr/4], serNum);   //??
+235
+        if (status == MI_OK)
+236
+        {
+237
+            //???
+238
+                        blockAddr = blockAddr - 3 ;
+239
+                        status = MFRC522_Read(blockAddr, str);
+240
+            if (status == MI_OK)
+241
+            {
+242
+                                Serial.println("Read from the card ,the data is : ");
+243
+                for (i=0; i<16; i++)
+244
+                {
+245
+                              Serial.print(str[i],DEC);
+246
+                                      Serial.print(" , ");
+247
+                }
+248
+                                Serial.println(" ");
+249
+            }
+250
+        }
+251
+ 
+252
+                //??   
+253
+        blockAddr = 7;      //???7     
+254
+        status = MFRC522_Auth(PICC_AUTHENT1A, blockAddr, sectorNewKeyA[blockAddr/4], serNum);   //??
+255
+        if (status == MI_OK)
+256
+        {
+257
+            //???
+258
+                        blockAddr = blockAddr - 3 ;
+259
+            status = MFRC522_Read(blockAddr, str);
+260
+            if (status == MI_OK)
+261
+            {
+262
+                          if( str[15] < moneyConsume )
+263
+                          {
+264
+                              Serial.println(" The money is not enough !");
+265
+                          }
+266
+                          else
+267
+                          {
+268
+                              str[15] = str[15] - moneyConsume;
+269
+                              status = MFRC522_Write(blockAddr, str);
+270
+                              if(status == MI_OK)
+271
+                              {
+272
+                                 Serial.print("You pay $18 for items in B2CQSHOP.COM . Now, Your money balance is :   $");
+273
+                         Serial.print(str[15],DEC);
+274
+                                 Serial.println(" ");
+275
+                              }
+276
+                          }
+277
+            }
+278
+        }
+279
+ 
+280
+                //??   
+281
+        blockAddr = 7;      //???7     
+282
+        status = MFRC522_Auth(PICC_AUTHENT1A, blockAddr, sectorNewKeyA[blockAddr/4], serNum);   //??
+283
+        if (status == MI_OK)
+284
+        {
+285
+            //???
+286
+                        blockAddr = blockAddr - 3 ;
+287
+            status = MFRC522_Read(blockAddr, str);
+288
+            if (status == MI_OK)
+289
+            {
+290
+                          tmp = (int)(str[15] + moneyAdd) ;
+291
+                          //Serial.println(tmp,DEC);
+292
+                          if( tmp < (char)254 )
+293
+                          {
+294
+                              Serial.println(" The money of the card can not be more than 255 !");
+295
+                          }
+296
+                          else
+297
+                          {
+298
+                              str[15] = str[15] + moneyAdd ;
+299
+                              status = MFRC522_Write(blockAddr, str);
+300
+                              if(status == MI_OK)
+301
+                              {
+302
+                                 Serial.print("You add $10 to your card in B2CQSHOP.COM , Your money balance is :  $");
+303
+                         Serial.print(str[15],DEC);
+304
+                                 Serial.println(" ");
+305
+                              }
+306
+                          }
+307
+            }
+308
+        }
+309
+                Serial.println(" ");
+310
+        MFRC522_Halt();         //??????????             
+311
+           
+312
+}
+313
+ 
+314
+/*
+315
+ * ? ? ?:Write_MFRC5200
+316
+ * ????:?MFRC522?????????????
+317
+ * ????:addr--?????;val--?????
+318
+ * ? ? ?:?
+319
+ */
+320
+void Write_MFRC522(uchar addr, uchar val)
+321
+{
+322
+    digitalWrite(chipSelectPin, LOW);
+323
+ 
+324
+    //????:0XXXXXX0
+325
+    SPI.transfer((addr<<1)&0x7E);
+326
+    SPI.transfer(val);
+327
+     
+328
+    digitalWrite(chipSelectPin, HIGH);
+329
+}
+330
+ 
+331
+ 
+332
+/*
+333
+ * ? ? ?:Read_MFRC522
+334
+ * ????:?MFRC522?????????????
+335
+ * ????:addr--?????
+336
+ * ? ? ?:????????????
+337
+ */
+338
+uchar Read_MFRC522(uchar addr)
+339
+{
+340
+    uchar val;
+341
+ 
+342
+    digitalWrite(chipSelectPin, LOW);
+343
+ 
+344
+    //????:1XXXXXX0
+345
+    SPI.transfer(((addr<<1)&0x7E) | 0x80);   
+346
+    val =SPI.transfer(0x00);
+347
+     
+348
+    digitalWrite(chipSelectPin, HIGH);
+349
+     
+350
+    return val;
+351
+}
+352
+ 
+353
+/*
+354
+ * ? ? ?:SetBitMask
+355
+ * ????:?RC522????
+356
+ * ????:reg--?????;mask--???
+357
+ * ? ? ?:?
+358
+ */
+359
+void SetBitMask(uchar reg, uchar mask) 
+360
+{
+361
+    uchar tmp;
+362
+    tmp = Read_MFRC522(reg);
+363
+    Write_MFRC522(reg, tmp | mask);  // set bit mask
+364
+}
+365
+ 
+366
+ 
+367
+/*
+368
+ * ? ? ?:ClearBitMask
+369
+ * ????:?RC522????
+370
+ * ????:reg--?????;mask--???
+371
+ * ? ? ?:?
+372
+ */
+373
+void ClearBitMask(uchar reg, uchar mask) 
+374
+{
+375
+    uchar tmp;
+376
+    tmp = Read_MFRC522(reg);
+377
+    Write_MFRC522(reg, tmp & (~mask));  // clear bit mask
+378
+}
+379
+ 
+380
+ 
+381
+/*
+382
+ * ? ? ?:AntennaOn
+383
+ * ????:????,?????????????????1ms???
+384
+ * ????:?
+385
+ * ? ? ?:?
+386
+ */
+387
+void AntennaOn(void)
+388
+{
+389
+    uchar temp;
+390
+ 
+391
+    temp = Read_MFRC522(TxControlReg);
+392
+    if (!(temp & 0x03))
+393
+    {
+394
+        SetBitMask(TxControlReg, 0x03);
+395
+    }
+396
+}
+397
+ 
+398
+ 
+399
+/*
+400
+ * ? ? ?:AntennaOff
+401
+ * ????:????,?????????????????1ms???
+402
+ * ????:?
+403
+ * ? ? ?:?
+404
+ */
+405
+void AntennaOff(void)
+406
+{
+407
+    ClearBitMask(TxControlReg, 0x03);
+408
+}
+409
+ 
+410
+ 
+411
+/*
+412
+ * ? ? ?:ResetMFRC522
+413
+ * ????:??RC522
+414
+ * ????:?
+415
+ * ? ? ?:?
+416
+ */
+417
+void MFRC522_Reset(void)
+418
+{
+419
+    Write_MFRC522(CommandReg, PCD_RESETPHASE);
+420
+}
+421
+ 
+422
+ 
+423
+/*
+424
+ * ? ? ?:InitMFRC522
+425
+ * ????:???RC522
+426
+ * ????:?
+427
+ * ? ? ?:?
+428
+ */
+429
+void MFRC522_Init(void)
+430
+{
+431
+    digitalWrite(NRSTPD,HIGH);
+432
+ 
+433
+    MFRC522_Reset();
+434
+         
+435
+    //Timer: TPrescaler*TreloadVal/6.78MHz = 24ms
+436
+    Write_MFRC522(TModeReg, 0x8D);      //Tauto=1; f(Timer) = 6.78MHz/TPreScaler
+437
+    Write_MFRC522(TPrescalerReg, 0x3E); //TModeReg[3..0] + TPrescalerReg
+438
+    Write_MFRC522(TReloadRegL, 30);          
+439
+    Write_MFRC522(TReloadRegH, 0);
+440
+     
+441
+    Write_MFRC522(TxAutoReg, 0x40);     //100%ASK
+442
+    Write_MFRC522(ModeReg, 0x3D);       //CRC???0x6363  ???
+443
+ 
+444
+    //ClearBitMask(Status2Reg, 0x08);       //MFCrypto1On=0
+445
+    //Write_MFRC522(RxSelReg, 0x86);        //RxWait = RxSelReg[5..0]
+446
+    //Write_MFRC522(RFCfgReg, 0x7F);        //RxGain = 48dB
+447
+ 
+448
+    AntennaOn();        //????
+449
+}
+450
+ 
+451
+ 
+452
+/*
+453
+ * ? ? ?:MFRC522_Request
+454
+ * ????:??,??????
+455
+ * ????:reqMode--????,
+456
+ *           TagType--??????
+457
+ *              0x4400 = Mifare_UltraLight
+458
+ *              0x0400 = Mifare_One(S50)
+459
+ *              0x0200 = Mifare_One(S70)
+460
+ *              0x0800 = Mifare_Pro(X)
+461
+ *              0x4403 = Mifare_DESFire
+462
+ * ? ? ?:????MI_OK
+463
+ */
+464
+uchar MFRC522_Request(uchar reqMode, uchar *TagType)
+465
+{
+466
+    uchar status; 
+467
+    uint backBits;          //????????
+468
+ 
+469
+    Write_MFRC522(BitFramingReg, 0x07);     //TxLastBists = BitFramingReg[2..0] ???
+470
+     
+471
+    TagType[0] = reqMode;
+472
+    status = MFRC522_ToCard(PCD_TRANSCEIVE, TagType, 1, TagType, &backBits);
+473
+ 
+474
+    if ((status != MI_OK) || (backBits != 0x10))
+475
+    {   
+476
+        status = MI_ERR;
+477
+    }
+478
+    
+479
+    return status;
+480
+}
+481
+ 
+482
+ 
+483
+/*
+484
+ * ? ? ?:MFRC522_ToCard
+485
+ * ????:RC522?ISO14443???
+486
+ * ????:command--MF522???,
+487
+ *           sendData--??RC522????????,
+488
+ *           sendLen--???????       
+489
+ *           backData--??????????,
+490
+ *           backLen--????????
+491
+ * ? ? ?:????MI_OK
+492
+ */
+493
+uchar MFRC522_ToCard(uchar command, uchar *sendData, uchar sendLen, uchar *backData, uint *backLen)
+494
+{
+495
+    uchar status = MI_ERR;
+496
+    uchar irqEn = 0x00;
+497
+    uchar waitIRq = 0x00;
+498
+    uchar lastBits;
+499
+    uchar n;
+500
+    uint i;
+501
+ 
+502
+    switch (command)
+503
+    {
+504
+        case PCD_AUTHENT:       //????
+505
+        {
+506
+            irqEn = 0x12;
+507
+            waitIRq = 0x10;
+508
+            break;
+509
+        }
+510
+        case PCD_TRANSCEIVE:    //??FIFO???
+511
+        {
+512
+            irqEn = 0x77;
+513
+            waitIRq = 0x30;
+514
+            break;
+515
+        }
+516
+        default:
+517
+            break;
+518
+    }
+519
+    
+520
+    Write_MFRC522(CommIEnReg, irqEn|0x80);  //??????
+521
+    ClearBitMask(CommIrqReg, 0x80);         //?????????
+522
+    SetBitMask(FIFOLevelReg, 0x80);         //FlushBuffer=1, FIFO???
+523
+     
+524
+    Write_MFRC522(CommandReg, PCD_IDLE);    //NO action;??????  ???
+525
+ 
+526
+    //?FIFO?????
+527
+    for (i=0; i<sendLen; i++)
+528
+    {  
+529
+        Write_MFRC522(FIFODataReg, sendData[i]);   
+530
+    }
+531
+ 
+532
+    //????
+533
+    Write_MFRC522(CommandReg, command);
+534
+    if (command == PCD_TRANSCEIVE)
+535
+    {   
+536
+        SetBitMask(BitFramingReg, 0x80);        //StartSend=1,transmission of data starts 
+537
+    }  
+538
+     
+539
+    //????????
+540
+    i = 2000;   //i????????,??M1???????25ms ???
+541
+    do
+542
+    {
+543
+        //CommIrqReg[7..0]
+544
+        //Set1 TxIRq RxIRq IdleIRq HiAlerIRq LoAlertIRq ErrIRq TimerIRq
+545
+        n = Read_MFRC522(CommIrqReg);
+546
+        i--;
+547
+    }
+548
+    while ((i!=0) && !(n&0x01) && !(n&waitIRq));
+549
+ 
+550
+    ClearBitMask(BitFramingReg, 0x80);          //StartSend=0
+551
+     
+552
+    if (i != 0)
+553
+    {   
+554
+        if(!(Read_MFRC522(ErrorReg) & 0x1B))    //BufferOvfl Collerr CRCErr ProtecolErr
+555
+        {
+556
+            status = MI_OK;
+557
+            if (n & irqEn & 0x01)
+558
+            {  
+559
+                status = MI_NOTAGERR;           //??  
+560
+            }
+561
+ 
+562
+            if (command == PCD_TRANSCEIVE)
+563
+            {
+564
+                n = Read_MFRC522(FIFOLevelReg);
+565
+                lastBits = Read_MFRC522(ControlReg) & 0x07;
+566
+                if (lastBits)
+567
+                {  
+568
+                    *backLen = (n-1)*8 + lastBits;  
+569
+                }
+570
+                else
+571
+                {  
+572
+                    *backLen = n*8;  
+573
+                }
+574
+ 
+575
+                if (n == 0)
+576
+                {  
+577
+                    n = 1;   
+578
+                }
+579
+                if (n > MAX_LEN)
+580
+                {  
+581
+                    n = MAX_LEN;  
+582
+                }
+583
+                 
+584
+                //??FIFO???????
+585
+                for (i=0; i<n; i++)
+586
+                {  
+587
+                    backData[i] = Read_MFRC522(FIFODataReg);   
+588
+                }
+589
+            }
+590
+        }
+591
+        else
+592
+        {  
+593
+            status = MI_ERR; 
+594
+        }
+595
+         
+596
+    }
+597
+     
+598
+    //SetBitMask(ControlReg,0x80);           //timer stops
+599
+    //Write_MFRC522(CommandReg, PCD_IDLE);
+600
+ 
+601
+    return status;
+602
+}
+603
+ 
+604
+ 
+605
+/*
+606
+ * ? ? ?:MFRC522_Anticoll
+607
+ * ????:?????,???????????
+608
+ * ????:serNum--??4??????,?5???????
+609
+ * ? ? ?:????MI_OK
+610
+ */
+611
+uchar MFRC522_Anticoll(uchar *serNum)
+612
+{
+613
+    uchar status;
+614
+    uchar i;
+615
+    uchar serNumCheck=0;
+616
+    uint unLen;
+617
+     
+618
+ 
+619
+    //ClearBitMask(Status2Reg, 0x08);       //TempSensclear
+620
+    //ClearBitMask(CollReg,0x80);           //ValuesAfterColl
+621
+    Write_MFRC522(BitFramingReg, 0x00);     //TxLastBists = BitFramingReg[2..0]
+622
+  
+623
+    serNum[0] = PICC_ANTICOLL;
+624
+    serNum[1] = 0x20;
+625
+    status = MFRC522_ToCard(PCD_TRANSCEIVE, serNum, 2, serNum, &unLen);
+626
+ 
+627
+    if (status == MI_OK)
+628
+    {
+629
+        //??????
+630
+        for (i=0; i<4; i++)
+631
+        {  
+632
+            serNumCheck ^= serNum[i];
+633
+        }
+634
+        if (serNumCheck != serNum[i])
+635
+        {  
+636
+            status = MI_ERR;   
+637
+        }
+638
+    }
+639
+ 
+640
+    //SetBitMask(CollReg, 0x80);        //ValuesAfterColl=1
+641
+ 
+642
+    return status;
+643
+}
+644
+ 
+645
+ 
+646
+/*
+647
+ * ? ? ?:CalulateCRC
+648
+ * ????:?MF522??CRC
+649
+ * ????:pIndata--???CRC???,len--????,pOutData--???CRC??
+650
+ * ? ? ?:?
+651
+ */
+652
+void CalulateCRC(uchar *pIndata, uchar len, uchar *pOutData)
+653
+{
+654
+    uchar i, n;
+655
+ 
+656
+    ClearBitMask(DivIrqReg, 0x04);          //CRCIrq = 0
+657
+    SetBitMask(FIFOLevelReg, 0x80);         //?FIFO??
+658
+    //Write_MFRC522(CommandReg, PCD_IDLE);
+659
+ 
+660
+    //?FIFO?????   
+661
+    for (i=0; i<len; i++)
+662
+    {  
+663
+        Write_MFRC522(FIFODataReg, *(pIndata+i));  
+664
+    }
+665
+    Write_MFRC522(CommandReg, PCD_CALCCRC);
+666
+ 
+667
+    //??CRC????
+668
+    i = 0xFF;
+669
+    do
+670
+    {
+671
+        n = Read_MFRC522(DivIrqReg);
+672
+        i--;
+673
+    }
+674
+    while ((i!=0) && !(n&0x04));            //CRCIrq = 1
+675
+ 
+676
+    //??CRC????
+677
+    pOutData[0] = Read_MFRC522(CRCResultRegL);
+678
+    pOutData[1] = Read_MFRC522(CRCResultRegM);
+679
+}
+680
+ 
+681
+ 
+682
+/*
+683
+ * ? ? ?:MFRC522_SelectTag
+684
+ * ????:??,????????
+685
+ * ????:serNum--??????
+686
+ * ? ? ?:???????
+687
+ */
+688
+uchar MFRC522_SelectTag(uchar *serNum)
+689
+{
+690
+    uchar i;
+691
+    uchar status;
+692
+    uchar size;
+693
+    uint recvBits;
+694
+    uchar buffer[9];
+695
+ 
+696
+    //ClearBitMask(Status2Reg, 0x08);           //MFCrypto1On=0
+697
+ 
+698
+    buffer[0] = PICC_SElECTTAG;
+699
+    buffer[1] = 0x70;
+700
+    for (i=0; i<5; i++)
+701
+    {
+702
+        buffer[i+2] = *(serNum+i);
+703
+    }
+704
+    CalulateCRC(buffer, 7, &buffer[7]);     //??
+705
+    status = MFRC522_ToCard(PCD_TRANSCEIVE, buffer, 9, buffer, &recvBits);
+706
+     
+707
+    if ((status == MI_OK) && (recvBits == 0x18))
+708
+    {  
+709
+        size = buffer[0];
+710
+    }
+711
+    else
+712
+    {  
+713
+        size = 0;   
+714
+    }
+715
+ 
+716
+    return size;
+717
+}
+718
+ 
+719
+ 
+720
+/*
+721
+ * ? ? ?:MFRC522_Auth
+722
+ * ????:??????
+723
+ * ????:authMode--??????
+724
+                 0x60 = ??A??
+725
+                 0x61 = ??B??
+726
+             BlockAddr--???
+727
+             Sectorkey--????
+728
+             serNum--?????,4??
+729
+ * ? ? ?:????MI_OK
+730
+ */
+731
+uchar MFRC522_Auth(uchar authMode, uchar BlockAddr, uchar *Sectorkey, uchar *serNum)
+732
+{
+733
+    uchar status;
+734
+    uint recvBits;
+735
+    uchar i;
+736
+    uchar buff[12];
+737
+ 
+738
+    //????+???+????+????
+739
+    buff[0] = authMode;
+740
+    buff[1] = BlockAddr;
+741
+    for (i=0; i<6; i++)
+742
+    {   
+743
+        buff[i+2] = *(Sectorkey+i);  
+744
+    }
+745
+    for (i=0; i<4; i++)
+746
+    {   
+747
+        buff[i+8] = *(serNum+i);  
+748
+    }
+749
+    status = MFRC522_ToCard(PCD_AUTHENT, buff, 12, buff, &recvBits);
+750
+ 
+751
+    if ((status != MI_OK) || (!(Read_MFRC522(Status2Reg) & 0x08)))
+752
+    {  
+753
+        status = MI_ERR;  
+754
+    }
+755
+     
+756
+    return status;
+757
+}
+758
+ 
+759
+ 
+760
+/*
+761
+ * ? ? ?:MFRC522_Read
+762
+ * ????:????
+763
+ * ????:blockAddr--???;recvData--??????
+764
+ * ? ? ?:????MI_OK
+765
+ */
+766
+uchar MFRC522_Read(uchar blockAddr, uchar *recvData)
+767
+{
+768
+    uchar status;
+769
+    uint unLen;
+770
+ 
+771
+    recvData[0] = PICC_READ;
+772
+    recvData[1] = blockAddr;
+773
+    CalulateCRC(recvData,2, &recvData[2]);
+774
+    status = MFRC522_ToCard(PCD_TRANSCEIVE, recvData, 4, recvData, &unLen);
+775
+ 
+776
+    if ((status != MI_OK) || (unLen != 0x90))
+777
+    {
+778
+        status = MI_ERR;
+779
+    }
+780
+     
+781
+    return status;
+782
+}
+783
+ 
+784
+ 
+785
+/*
+786
+ * ? ? ?:MFRC522_Write
+787
+ * ????:????
+788
+ * ????:blockAddr--???;writeData--???16????
+789
+ * ? ? ?:????MI_OK
+790
+ */
+791
+uchar MFRC522_Write(uchar blockAddr, uchar *writeData)
+792
+{
+793
+    uchar status;
+794
+    uint recvBits;
+795
+    uchar i;
+796
+    uchar buff[18];
+797
+     
+798
+    buff[0] = PICC_WRITE;
+799
+    buff[1] = blockAddr;
+800
+    CalulateCRC(buff, 2, &buff[2]);
+801
+    status = MFRC522_ToCard(PCD_TRANSCEIVE, buff, 4, buff, &recvBits);
+802
+ 
+803
+    if ((status != MI_OK) || (recvBits != 4) || ((buff[0] & 0x0F) != 0x0A))
+804
+    {  
+805
+        status = MI_ERR;  
+806
+    }
+807
+         
+808
+    if (status == MI_OK)
+809
+    {
+810
+        for (i=0; i<16; i++)     //?FIFO?16Byte??
+811
+        {   
+812
+            buff[i] = *(writeData+i);  
+813
+        }
+814
+        CalulateCRC(buff, 16, &buff[16]);
+815
+        status = MFRC522_ToCard(PCD_TRANSCEIVE, buff, 18, buff, &recvBits);
+816
+         
+817
+        if ((status != MI_OK) || (recvBits != 4) || ((buff[0] & 0x0F) != 0x0A))
+818
+        {  
+819
+            status = MI_ERR;  
+820
+        }
+821
+    }
+822
+     
+823
+    return status;
+824
+}
+825
+ 
+826
+ 
+827
+/*
+828
+ * ? ? ?:MFRC522_Halt
+829
+ * ????:??????????
+830
+ * ????:?
+831
+ * ? ? ?:?
+832
+ */
+833
+void MFRC522_Halt(void)
+834
+{
+835
+    uchar status;
+836
+    uint unLen;
+837
+    uchar buff[4];
+838
+ 
+839
+    buff[0] = PICC_HALT;
+840
+    buff[1] = 0;
+841
+    CalulateCRC(buff, 2, &buff[2]);
+842
+  
+843
+    status = MFRC522_ToCard(PCD_TRANSCEIVE, buff, 4, buff,&unLen);
+844
+}
