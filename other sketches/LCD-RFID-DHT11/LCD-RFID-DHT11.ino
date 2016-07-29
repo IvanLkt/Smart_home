@@ -4,7 +4,7 @@
  * SCL: pin A5
  * SDA: pin A4
  * 
- * HC11: pin 4
+ * DHT11: pin 4
  *  
  * RFID:
 * MOSI: Pin 11 / ICSP-4
