@@ -3,4 +3,4 @@ https://www.coursera.org/learn/roboty-arduino/home
 https://www.youtube.com/playlist?list=PLA567CE235D39FA84        Jeremy playlist
 http://bigbarrel.ru/virtualwire-arduino-example/                Virtualwire
 http://freedelivery.in.ua/shop/details/3116/141/arduino/knopki-manipulyatori/sensornaya-klaviatura-ttp229-16-knopok-arduino.html                  keyboard
-
+https://www.youtube.com/watch?v=gPGOPkj9sSQ     передача по 433
